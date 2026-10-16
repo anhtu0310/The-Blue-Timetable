@@ -1,0 +1,68 @@
+{% load static ui %}<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Blue Time Table{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'vendor/flatpickr.min.css' %}">
+  <link rel="stylesheet" href="{% static 'core/app.css' %}">
+  <script src="{% static 'vendor/htmx.min.js' %}" defer></script>
+  <script src="{% static 'vendor/flatpickr.min.js' %}" defer></script>
+  <script src="{% static 'vendor/flatpickr-vn.js' %}" defer></script>
+  {% block head %}{% endblock %}
+  <script src="{% static 'core/app.js' %}" defer></script>
+</head>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+{% block body %}
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <a href="{% url 'calendar' %}" class="brand">
+      <span class="brand-logo">BT</span>
+      <span><span class="brand-name">Blue Time Table</span><span class="brand-sub">Học tập &amp; Phát triển</span></span>
+    </a>
+    <nav class="nav">
+      <div class="nav-label">Tổng quan</div>
+      <a href="{% url 'calendar' %}" class="nav-item{% if nav_section == 'calendar' %} active{% endif %}">{% icon 'calendar-days' %} Lịch học</a>
+      <a href="{% url 'class_list' %}" class="nav-item{% if nav_section == 'class' %} active{% endif %}">{% icon 'book-open' %} Lớp học</a>
+      <a href="{% url 'student_list' %}" class="nav-item{% if nav_section == 'student' %} active{% endif %}">{% icon 'graduation-cap' %} Học sinh</a>
+      {% if user.is_moderator %}
+      <div class="nav-label">Quản lý</div>
+      <a href="{% url 'teacher_list' %}" class="nav-item{% if nav_section == 'teacher' %} active{% endif %}">{% icon 'users' %} Giáo viên</a>
+      <a href="{% url 'subject_list' %}" class="nav-item{% if nav_section == 'subject' %} active{% endif %}">{% icon 'tags' %} Môn học</a>
+      {% endif %}
+      <div class="nav-label">Tài khoản</div>
+      <a href="{% url 'me' %}" class="nav-item{% if nav_section == 'me' %} active{% endif %}">{% icon 'user' %} Hồ sơ của tôi</a>
+      <a href="{% url 'password_change' %}" class="nav-item{% if nav_section == 'password' %} active{% endif %}">{% icon 'key-round' %} Đổi mật khẩu</a>
+    </nav>
+    <div class="sidebar-user">
+      <span class="avatar">{{ user|initials }}</span>
+      <div class="who">
+        <a href="{% url 'me' %}">{{ user }}</a>
+        <small>{{ user.get_role_display }}</small>
+      </div>
+      <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+        <button type="submit" class="icon-btn" title="Đăng xuất" aria-label="Đăng xuất">{% icon 'log-out' %}</button>
+      </form>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="mobilebar">
+      <button type="button" class="icon-btn" data-menu aria-label="Mở menu">{% icon 'menu' 'icon-lg' %}</button>
+      <span class="brand-logo">BT</span><strong>Blue Time Table</strong>
+    </div>
+    <main class="content">
+      {% if demo_mode %}<div class="demo-bar">{% icon 'circle-alert' %} Bản demo với dữ liệu mẫu – mọi thay đổi sẽ được làm mới khi máy chủ khởi động lại.</div>{% endif %}
+      {% include 'core/_messages.html' %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<dialog id="modal" class="modal">
+  <button type="button" class="icon-btn modal-close" data-close aria-label="Đóng">{% icon 'x' 'icon-lg' %}</button>
+  <div id="modal-body" tabindex="-1"></div>
+</dialog>
+{% endblock %}
+</body>
+</html>

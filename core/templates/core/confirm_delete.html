@@ -1,0 +1,17 @@
+{% extends base_template %}
+{% load ui %}
+{% block title %}Xác nhận xóa{% endblock %}
+{% block content %}
+<div class="card form" style="max-width:520px">
+  <div class="card-body">
+    <div class="stat-icon tone-red" style="margin-bottom:14px">{% icon 'trash-2' %}</div>
+    <h1 style="font-size:18px;margin-bottom:8px">Xóa “{{ object }}”?</h1>
+    {% if warning %}<p class="muted">{{ warning }}</p>{% endif %}
+    <p class="muted">Thao tác này không thể hoàn tác.</p>
+    <form method="post" class="form-actions">{% csrf_token %}
+      <button type="submit" class="btn btn-danger">{% icon 'trash-2' %} Xóa</button>
+      <a href="{{ cancel_url }}" class="btn">Hủy</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

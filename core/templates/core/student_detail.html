@@ -1,0 +1,48 @@
+{% extends 'core/base.html' %}
+{% load ui %}
+{% block title %}{{ person }} – Blue Time Table{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <a href="{% url 'student_list' %}" class="breadcrumb">{% icon 'arrow-left' %} Học sinh</a>
+    <div class="person" style="gap:16px">
+      <span class="avatar avatar-lg">{{ person|initials }}</span>
+      <div><h1>{{ person }}</h1><p class="subtitle">Học sinh{% if person.dob %} · sinh ngày {{ person.dob|date:"d/m/Y" }}{% endif %}</p></div>
+    </div>
+  </div>
+  {% if user.is_admin %}
+  <div class="page-actions">
+    <a href="{% url 'student_edit' person.pk %}" class="btn btn-primary">{% icon 'pencil' %} Sửa hồ sơ</a>
+    <a href="{% url 'student_delete' person.pk %}" class="btn">{% icon 'trash-2' %} Xóa</a>
+  </div>
+  {% endif %}
+</div>
+<section class="card">
+  <div class="card-header"><h2>Thông tin</h2></div>
+  <div class="card-body" style="padding-top:4px;padding-bottom:4px">
+    <dl class="details">
+      <dt>Nhân viên xã hội</dt><dd>{{ person.social_worker_name|default:"—" }}{% if person.social_worker_phone %} · {{ person.social_worker_phone }}{% endif %}</dd>
+      <dt>Môn quan tâm</dt><dd><span class="chips">{% for s in person.subjects.all %}<span class="chip chip-tag">{{ s.name }}</span>{% empty %}—{% endfor %}</span></dd>
+      <dt>Lớp đang học</dt><dd>{% include 'core/_class_chips.html' %}</dd>
+    </dl>
+  </div>
+</section>
+<section class="card">
+  <div class="card-header"><h2>Điểm danh &amp; nhận xét</h2><span class="count">{{ attendances|length }} buổi</span></div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Ngày</th><th>Lớp</th><th>Điểm danh</th><th>Nhận xét của giáo viên</th></tr></thead>
+      <tbody>
+        {% for a in attendances %}
+        <tr>
+          <td><a href="{% url 'session_detail' a.session.pk %}" hx-get="{% url 'session_detail' a.session.pk %}" hx-target="#modal-body" class="cell-title">{{ a.session.date|date:"d/m/Y" }}</a></td>
+          <td><span class="code">{{ a.session.study_class.code }}</span> · {{ a.session.study_class.subject }}</td>
+          <td><span class="badge att-{{ a.status }}">{{ a.get_status_display }}</span></td>
+          <td>{{ a.feedback|linebreaksbr|default:"—" }}</td>
+        </tr>
+        {% empty %}<tr><td colspan="4" class="empty">Chưa có dữ liệu điểm danh.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

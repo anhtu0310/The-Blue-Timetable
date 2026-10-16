@@ -1,0 +1,8 @@
+<ul class="timeline">
+{% for h in history %}
+  <li>
+    <div class="when"><strong>{{ h.who|default:"Hệ thống" }}</strong> · {{ h.when|date:"d/m/Y H:i" }}{% if h.created %} · tạo mới{% endif %}</div>
+    {% if h.changes %}<ul>{% for label, old, new in h.changes %}<li>{{ label|capfirst }}: {% if old is None %}{{ new }}{% else %}<del>{{ old }}</del> → {{ new }}{% endif %}</li>{% endfor %}</ul>{% endif %}
+  </li>
+{% empty %}<li class="muted">Chưa có thay đổi.</li>{% endfor %}
+</ul>

@@ -1,0 +1,32 @@
+{% extends base_template %}
+{% load ui %}
+{% block title %}Điều chỉnh buổi học{% endblock %}
+{% block content %}
+{% url 'session_detail' session.pk as back_url %}
+<div class="page-header">
+  <div>
+    <a {% modal_link back_url %} class="breadcrumb">{% icon 'arrow-left' %} Quay lại buổi học</a>
+    <h1>Điều chỉnh buổi học <span class="code">{{ session.study_class.code }}</span></h1>
+    <p class="subtitle">Buổi gốc ngày {{ session.original_date|date:"d/m/Y" }}. Thay đổi chỉ áp dụng cho buổi học này, không ảnh hưởng lịch của lớp.</p>
+  </div>
+</div>
+{% url 'session_reschedule' session.pk as url %}
+<form {% form_attrs url %}>{% csrf_token %}
+  {% include 'core/_form_errors.html' %}
+  <div class="form-grid-4">
+    {% include 'core/_field.html' with field=form.date %}
+    {% include 'core/_field.html' with field=form.start_time %}
+    {% include 'core/_field.html' with field=form.end_time %}
+    {% include 'core/_field.html' with field=form.room %}
+  </div>
+  <div class="form-grid">
+    {% include 'core/_field.html' with field=form.substitute_teacher %}
+    <div class="field"><label>&nbsp;</label>{% include 'core/_field.html' with field=form.is_cancelled %}</div>
+  </div>
+  {% include 'core/_field.html' with field=form.change_reason %}
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">Lưu điều chỉnh</button>
+    <a {% modal_link back_url %} class="btn">Hủy</a>
+  </div>
+</form>
+{% endblock %}

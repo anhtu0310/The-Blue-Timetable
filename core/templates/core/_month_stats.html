@@ -1,0 +1,52 @@
+<div class="card-header">
+  <h2>Thống kê tháng {{ first|date:"m/Y" }}</h2>
+  {% if mine %}<span class="count">Lớp tôi dạy</span>{% endif %}
+</div>
+<div class="card-body month-stats">
+  <div class="mini-stats">
+    <div><span class="mini-value">{{ total }}</span><span class="mini-label">Buổi học</span></div>
+    <div><span class="mini-value">{{ done }}</span><span class="mini-label">Đã nộp</span></div>
+    <div><span class="mini-value">{{ missing }}</span><span class="mini-label">Chưa nộp</span></div>
+    <div><span class="mini-value">{{ upcoming }}</span><span class="mini-label">Sắp tới</span></div>
+  </div>
+  {% if cancelled %}<small class="muted">Không tính {{ cancelled }} buổi đã hủy.</small>{% endif %}
+
+  <div class="metric">
+    <div class="metric-head"><span>Tỉ lệ nộp điểm danh</span><strong>{% if submit_rate is None %}—{% else %}{{ submit_rate }}%{% endif %}</strong></div>
+    <div class="meter meter-{{ submit_tone }}" role="meter" aria-label="Tỉ lệ nộp điểm danh" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ submit_rate|default:0 }}">
+      <span style="width: {{ submit_rate|default:0 }}%"></span>
+    </div>
+    <small class="muted">{% if due %}{{ done }}/{{ due }} buổi đã diễn ra đã được nộp{% else %}Chưa có buổi học nào diễn ra.{% endif %}</small>
+  </div>
+
+  <div class="metric">
+    <div class="metric-head"><span>Tỉ lệ đi học</span><strong>{% if attend_rate is None %}—{% else %}{{ attend_rate }}%{% endif %}</strong></div>
+    {% if att_total %}
+    <div class="stackbar" role="img" aria-label="{% for seg in segments %}{{ seg.label }} {{ seg.count }}{% if not forloop.last %}, {% endif %}{% endfor %}">
+      {% for seg in segments %}{% if seg.count %}<span class="seg seg-{{ seg.key }}" style="flex-grow: {{ seg.count }}" data-tip="{{ seg.label }}: {{ seg.count }} ({{ seg.pct }}%)"></span>{% endif %}{% endfor %}
+    </div>
+    <ul class="legend">
+      {% for seg in segments %}<li><span class="swatch seg-{{ seg.key }}"></span>{{ seg.label }}<span class="legend-val">{{ seg.count }} · {{ seg.pct }}%</span></li>{% endfor %}
+    </ul>
+    {% else %}
+    <small class="muted">Chưa có dữ liệu điểm danh trong tháng.</small>
+    {% endif %}
+  </div>
+</div>
+{% if rows %}
+<div class="table-wrap">
+  <table class="table table-compact">
+    <thead><tr><th>Lớp</th><th class="num">Buổi</th><th class="num">Đã nộp</th><th class="num">Đi học</th></tr></thead>
+    <tbody>
+      {% for r in rows %}
+      <tr>
+        <td><a href="{% url 'class_detail' r.c.pk %}" class="code">{{ r.c.code }}</a></td>
+        <td class="num">{{ r.total }}</td>
+        <td class="num">{{ r.done }}</td>
+        <td class="num">{% if r.rate is None %}—{% else %}{{ r.rate }}%{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}

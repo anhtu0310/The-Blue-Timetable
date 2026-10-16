@@ -1,0 +1,27 @@
+{% extends 'core/base.html' %}
+{% load ui %}
+{% block title %}Học sinh – Blue Time Table{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h1>Học sinh</h1><p class="subtitle">{% if user.is_moderator %}Hồ sơ tất cả học sinh.{% else %}Học sinh trong các lớp bạn phụ trách.{% endif %}</p></div>
+  {% if user.is_admin %}<div class="page-actions"><a href="{% url 'student_create' %}" class="btn btn-primary">{% icon 'plus' %} Thêm học sinh</a></div>{% endif %}
+</div>
+<div class="card">
+  <div class="card-header">{% include 'core/_people_search.html' %}<span class="count">{{ people|length }} học sinh</span></div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Họ tên</th><th>Ngày sinh</th><th>Nhân viên xã hội</th><th>Môn quan tâm</th></tr></thead>
+      <tbody>
+        {% for p in people %}
+        <tr>
+          <td><div class="person"><span class="avatar">{{ p|initials }}</span><a href="{% url 'student_detail' p.pk %}" class="cell-title">{{ p }}</a></div></td>
+          <td>{{ p.dob|date:"d/m/Y"|default:"—" }}</td>
+          <td>{{ p.social_worker_name|default:"—" }}{% if p.social_worker_phone %}<span class="cell-sub">{{ p.social_worker_phone }}</span>{% endif %}</td>
+          <td>{% include 'core/_tags.html' with subjects=p.subjects.all %}</td>
+        </tr>
+        {% empty %}<tr><td colspan="4" class="empty">Không tìm thấy học sinh nào.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

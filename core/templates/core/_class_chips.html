@@ -1,0 +1,1 @@
+<span class="chips">{% for c in classes %}<a class="chip chip-class" href="{% url 'class_detail' c.pk %}"><span class="code">{{ c.code }}</span> {{ c.subject }}</a>{% empty %}<span class="muted">Chưa được xếp lớp.</span>{% endfor %}</span>

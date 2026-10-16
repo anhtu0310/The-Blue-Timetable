@@ -1,0 +1,52 @@
+{% extends 'core/base.html' %}
+{% load ui %}
+{% block title %}Đăng nhập – Blue Time Table{% endblock %}
+{% block body %}
+<div class="auth">
+  <section class="auth-brand">
+    <div class="brand">
+      <span class="brand-logo">BT</span>
+      <span><span class="brand-name">Blue Time Table</span><span class="brand-sub">Blue Dragon · Học tập &amp; Phát triển</span></span>
+    </div>
+    <div>
+      <h2>Điều phối lớp học, giáo viên và học sinh ở một nơi.</h2>
+      <p>Lịch học theo tháng, điểm danh và nhận xét từng buổi, theo dõi thay đổi của lớp học.</p>
+      <ul class="auth-points">
+        <li>{% icon 'calendar-days' %} Lịch học trực quan cho từng tài khoản</li>
+        <li>{% icon 'clipboard-check' %} Điểm danh và nhận xét sau mỗi buổi học</li>
+        <li>{% icon 'history' %} Lưu lại lịch sử thay đổi của lớp</li>
+      </ul>
+    </div>
+    <small>Phòng Học tập &amp; Phát triển</small>
+  </section>
+  <section class="auth-form">
+    <form method="post">{% csrf_token %}
+      <h1>Đăng nhập</h1>
+      <p class="muted">Dùng tài khoản do quản trị viên cấp.</p>
+      {% if form.locked %}<div class="alert alert-error">{% icon 'lock' %}<span>Đăng nhập sai quá nhiều lần. Vui lòng thử lại sau 15 phút.</span></div>
+      {% elif form.errors %}<div class="alert alert-error">{% icon 'circle-alert' %}<span>Tên đăng nhập hoặc mật khẩu không đúng.</span></div>{% endif %}
+      <div class="field">
+        <label for="id_username">Tên đăng nhập</label>
+        <input type="text" name="username" id="id_username" autocomplete="username" required autofocus value="{{ form.username.value|default:'' }}">
+      </div>
+      <div class="field">
+        <label for="id_password">Mật khẩu</label>
+        <input type="password" name="password" id="id_password" autocomplete="current-password" required>
+      </div>
+      <input type="hidden" name="next" value="{{ next }}">
+      <button type="submit" class="btn btn-primary btn-block">Đăng nhập</button>
+      {% if demo_mode %}
+      <div class="demo-box">
+        <strong>Bản demo</strong> – mật khẩu chung: <code>bluedragon123</code>
+        <ul>
+          <li><button type="button" class="link-btn" data-demo-user="admin">admin</button> Quản trị viên</li>
+          <li><button type="button" class="link-btn" data-demo-user="dieuphoi">dieuphoi</button> Điều phối viên</li>
+          <li><button type="button" class="link-btn" data-demo-user="gv.lan">gv.lan</button> Giáo viên</li>
+        </ul>
+        <small class="muted">Dữ liệu mẫu, được làm mới khi máy chủ khởi động lại.</small>
+      </div>
+      {% endif %}
+    </form>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends 'core/base.html' %}
+{% load static ui %}
+{% block title %}Lịch học – Blue Time Table{% endblock %}
+{% block head %}
+<script src="{% static 'vendor/fullcalendar.min.js' %}" defer></script>
+<script src="{% static 'vendor/fullcalendar-vi.js' %}" defer></script>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Lịch học</h1>
+    <p class="subtitle">Xin chào {{ user }} · {% now "l, d/m/Y" %}</p>
+  </div>
+  {% if user.is_moderator %}
+  <div class="page-actions"><a href="{% url 'class_create' %}" class="btn btn-primary">{% icon 'plus' %} Tạo lớp</a></div>
+  {% endif %}
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-icon tone-blue">{% icon 'calendar-clock' %}</div>
+    <div><div class="stat-value">{{ today_sessions|length }}</div><div class="stat-label">Buổi học hôm nay</div></div></div>
+  <div class="stat"><div class="stat-icon tone-green">{% icon 'calendar-days' %}</div>
+    <div><div class="stat-value">{{ week_count }}</div><div class="stat-label">Buổi học tuần này</div></div></div>
+  <div class="stat"><div class="stat-icon {% if pending_count %}tone-red{% else %}tone-green{% endif %}">{% icon 'clipboard-check' %}</div>
+    <div><div class="stat-value">{{ pending_count }}</div><div class="stat-label">Buổi chưa nộp điểm danh</div></div></div>
+  <div class="stat"><div class="stat-icon tone-amber">{% icon 'book-open' %}</div>
+    <div><div class="stat-value">{{ active_classes }}</div><div class="stat-label">Lớp đang diễn ra</div></div></div>
+</div>
+
+<div class="layout-aside">
+  <div class="card calendar-card">
+    <div class="calendar-toolbar">
+      <div class="calendar-legend">
+        <span class="badge ev-planned">Sắp diễn ra</span>
+        <span class="badge ev-done">Đã nộp</span>
+        <span class="badge ev-missing">Chưa nộp</span>
+        <span class="badge ev-changed">Đã điều chỉnh</span>
+        <span class="badge ev-cancelled">Đã hủy</span>
+      </div>
+      {% if user.is_moderator %}
+      <label class="toggle">
+        <input type="checkbox" id="only-mine"> Chỉ lớp tôi dạy
+      </label>
+      {% endif %}
+    </div>
+    <div id="calendar" data-events-url="{% url 'calendar_events' %}"></div>
+  </div>
+
+  <aside>
+    <section class="card" id="month-stats" data-url="{% url 'calendar_stats' %}" aria-live="polite">
+      <div class="card-header"><h2>Thống kê tháng</h2></div>
+      <div class="card-body"><small class="muted">Đang tải…</small></div>
+    </section>
+
+    <section class="card">
+      <div class="card-header"><h2>Hôm nay</h2><span class="count">{{ today_sessions|length }} buổi</span></div>
+      <ul class="list">
+        {% for s in today_sessions %}
+        <li>
+          <a class="list-link" href="{% url 'session_detail' s.pk %}" hx-get="{% url 'session_detail' s.pk %}" hx-target="#modal-body">
+            <span class="time-box"><strong>{{ s.start_time|time:"H:i" }}</strong><small>{{ s.end_time|time:"H:i" }}</small></span>
+            <span class="grow">
+              <span class="cell-title"><span class="code">{{ s.study_class.code }}</span> · {{ s.study_class.subject }}</span>
+              <span class="cell-sub">{% if s.room %}Phòng {{ s.room }}{% else %}Chưa có phòng{% endif %}</span>
+            </span>
+          </a>
+          {% if s.is_cancelled %}<span class="badge ev-cancelled">Hủy</span>{% elif s.is_locked %}<span class="badge ev-done">Đã nộp</span>{% endif %}
+        </li>
+        {% empty %}<li class="empty-item">Không có buổi học nào hôm nay.</li>{% endfor %}
+      </ul>
+    </section>
+
+    <section class="card">
+      <div class="card-header"><h2>Chưa nộp điểm danh</h2><span class="count">{{ pending_count }}</span></div>
+      <ul class="list">
+        {% for s in pending %}
+        <li>
+          <a class="list-link" href="{% url 'session_detail' s.pk %}" hx-get="{% url 'session_detail' s.pk %}" hx-target="#modal-body">
+            <span class="grow">
+              <span class="cell-title"><span class="code">{{ s.study_class.code }}</span> · {{ s.study_class.subject }}</span>
+              <span class="cell-sub">{{ s.date|date:"D, d/m/Y" }} · {{ s.start_time|time:"H:i" }}</span>
+            </span>
+          </a>
+          <span class="badge ev-missing">Chưa nộp</span>
+        </li>
+        {% empty %}<li class="empty-item">{% icon 'circle-check' %}&nbsp;Đã nộp đủ.</li>{% endfor %}
+      </ul>
+      {% if pending_count > pending|length %}<div class="card-footer"><small class="muted">và {{ pending_count|add:"-6" }} buổi khác…</small></div>{% endif %}
+    </section>
+  </aside>
+</div>
+{% endblock %}

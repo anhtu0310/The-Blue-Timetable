@@ -1,0 +1,13 @@
+{% extends 'core/base.html' %}
+{% load ui %}
+{% block title %}Không có quyền truy cập{% endblock %}
+{% block content %}
+<div class="card form" style="max-width:520px">
+  <div class="card-body">
+    <div class="stat-icon tone-amber" style="margin-bottom:14px">{% icon 'lock' %}</div>
+    <h1 style="font-size:18px;margin-bottom:8px">Không có quyền truy cập</h1>
+    <p class="muted">Tài khoản của bạn không có quyền xem hoặc thực hiện thao tác này.</p>
+    <a href="{% url 'calendar' %}" class="btn">{% icon 'arrow-left' %} Về trang lịch</a>
+  </div>
+</div>
+{% endblock %}

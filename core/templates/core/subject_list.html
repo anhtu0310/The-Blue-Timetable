@@ -1,0 +1,39 @@
+{% extends 'core/base.html' %}
+{% load ui %}
+{% block title %}Môn học – Blue Time Table{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h1>Môn học</h1><p class="subtitle">Dùng làm thẻ (tag) cho giáo viên và học sinh, và làm tiền tố mã lớp.</p></div>
+</div>
+<div class="card">
+  <div class="card-header">
+    <form method="post" class="toolbar">{% csrf_token %}
+      <input type="text" name="name" placeholder="Tên môn (VD: Toán)" value="{{ form.name.value|default:'' }}" required style="width:220px">
+      <input type="text" name="code" placeholder="Mã (VD: TO)" maxlength="2" value="{{ form.code.value|default:'' }}" required style="width:120px;text-transform:uppercase">
+      <button type="submit" class="btn btn-primary">{% icon 'plus' %} Thêm môn</button>
+    </form>
+    <span class="count">{{ subjects|length }} môn</span>
+  </div>
+  {% if form.errors %}<div class="card-body" style="padding-bottom:0">{% for field in form %}{% for e in field.errors %}<div class="alert alert-error">{{ field.label }}: {{ e }}</div>{% endfor %}{% endfor %}</div>{% endif %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Mã</th><th>Tên môn</th><th class="num">Giáo viên</th><th class="num">Học sinh</th><th class="num">Lớp</th><th></th></tr></thead>
+      <tbody>
+        {% for s in subjects %}
+        <tr>
+          <td><span class="chip chip-tag code">{{ s.code }}</span></td>
+          <td class="cell-title">{{ s.name }}</td>
+          <td class="num"><a href="{% url 'teacher_list' %}?tag={{ s.pk }}">{{ s.teacher_count }}</a></td>
+          <td class="num"><a href="{% url 'student_list' %}?tag={{ s.pk }}">{{ s.student_count }}</a></td>
+          <td class="num">{{ s.class_count }}</td>
+          <td class="actions-cell">
+            <a href="{% url 'subject_edit' s.pk %}" class="btn btn-ghost btn-sm" aria-label="Sửa">{% icon 'pencil' %}</a>
+            <a href="{% url 'subject_delete' s.pk %}" class="btn btn-ghost btn-sm danger" aria-label="Xóa">{% icon 'trash-2' %}</a>
+          </td>
+        </tr>
+        {% empty %}<tr><td colspan="6" class="empty">Chưa có môn học nào.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

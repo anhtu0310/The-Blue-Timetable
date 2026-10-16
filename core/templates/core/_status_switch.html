@@ -1,0 +1,5 @@
+{% load ui %}
+{% comment %}Quick class status switch for moderators. Pass `c`, and `session` when shown in a session pop-up.{% endcomment %}
+{% url 'class_status' c.pk as status_url %}
+{% if session %}{% with sid=session.pk|stringformat:"s" %}{% with url=status_url|add:"?session="|add:sid %}{% include 'core/_status_buttons.html' %}{% endwith %}{% endwith %}
+{% else %}{% with url=status_url %}{% include 'core/_status_buttons.html' %}{% endwith %}{% endif %}

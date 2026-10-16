@@ -1,0 +1,110 @@
+{% extends base_template %}
+{% load ui %}
+{% block title %}{{ c.code }} – {{ session.date|date:"d/m/Y" }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    {% if not request.htmx %}<a href="{% url 'class_detail' c.pk %}" class="breadcrumb">{% icon 'arrow-left' %} Lớp {{ c.code }}</a>{% endif %}
+    <h1><span class="code">{{ c.code }}</span> {{ c.subject }} <span class="badge ev-{{ session.state }}">{{ session.state_label }}</span></h1>
+    <div class="meta">
+      <span>{% icon 'calendar-days' %} {{ session.date|date:"l, d/m/Y" }}</span>
+      <span>{% icon 'clock' %} {{ session.start_time|time:"H:i" }} – {{ session.end_time|time:"H:i" }}</span>
+      <span>{% icon 'map-pin' %} {% if session.room %}Phòng {{ session.room }}{% else %}Chưa có phòng{% endif %}</span>
+      <span>{% icon 'user' %} {% for t in session.teacher_list %}{{ t }}{% if not forloop.last %}, {% endif %}{% empty %}Chưa có giáo viên{% endfor %}{% if session.substitute_teacher %} (dạy thay){% endif %}</span>
+    </div>
+  </div>
+</div>
+
+{% if session.is_rescheduled %}
+<div class="notice"><strong>Buổi học đã được điều chỉnh{% if session.original_date != session.date %} (ngày gốc {{ session.original_date|date:"d/m/Y" }}){% endif %}.</strong> {{ session.change_reason }}</div>
+{% endif %}
+
+<div class="form-actions">
+  <a href="{% url 'class_detail' c.pk %}" class="btn btn-sm">{% icon 'book-open' %} Trang lớp học</a>
+  {% if user.is_moderator %}
+  <a href="{% url 'class_edit' c.pk %}?session={{ session.pk }}" {% if request.htmx %}hx-get="{% url 'class_edit' c.pk %}?session={{ session.pk }}" hx-target="#modal-body"{% endif %} class="btn btn-sm">{% icon 'pencil' %} Sửa thông tin lớp</a>
+  {% endif %}
+  {% if can_reschedule %}
+  {% url 'session_reschedule' session.pk as reschedule_url %}
+  <a {% modal_link reschedule_url %} class="btn btn-sm">{% icon 'calendar-cog' %} Điều chỉnh buổi này</a>
+  {% endif %}
+</div>
+
+<div class="section-title"><h2>Điểm danh &amp; nhận xét</h2>{% if session.is_locked %}<small class="muted">{% icon 'lock' %} Nộp bởi {{ session.submitted_by|default:"—" }} lúc {{ session.submitted_at|date:"d/m/Y H:i" }}</small>{% endif %}</div>
+{% if form %}
+  {% url 'session_attendance' session.pk as att_url %}
+  <form {% form_attrs att_url "Sau khi nộp, thông tin buổi học sẽ không thể chỉnh sửa. Bạn chắc chắn muốn nộp?" %}>
+    {% csrf_token %}
+    {% include 'core/_form_errors.html' %}
+    {% if form.students %}
+    <div class="panel table-wrap" style="margin-bottom:16px">
+      <table class="table attendance-table">
+        <thead><tr><th>Học sinh</th><th>Điểm danh</th><th>Nhận xét</th></tr></thead>
+        <tbody>
+          {% for student, status, feedback in form.rows %}
+          <tr>
+            <td><div class="person"><span class="avatar">{{ student|initials }}</span><span class="cell-title">{{ student }}</span></div></td>
+            <td>{{ status }}</td>
+            <td>{{ feedback }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="muted">Lớp chưa có học sinh.</p>
+    {% endif %}
+    {% include 'core/_field.html' with field=form.teacher_comment %}
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">{% icon 'clipboard-check' %} Nộp điểm danh</button>
+      <small class="muted">Sau khi nộp sẽ không thể chỉnh sửa.</small>
+    </div>
+  </form>
+{% elif session.is_locked and can_see_results %}
+  <div class="panel table-wrap">
+    <table class="table">
+      <thead><tr><th>Học sinh</th><th>Điểm danh</th><th>Nhận xét</th></tr></thead>
+      <tbody>
+        {% for a in attendances %}
+        <tr>
+          <td><div class="person"><span class="avatar">{{ a.student|initials }}</span><span class="cell-title">{{ a.student }}</span></div></td>
+          <td><span class="badge att-{{ a.status }}">{{ a.get_status_display }}</span></td>
+          <td>{{ a.feedback|linebreaksbr|default:"—" }}</td>
+        </tr>
+        {% empty %}<tr><td colspan="3" class="empty">Không có học sinh.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if session.teacher_comment %}<p style="margin-top:12px"><strong>Nhận xét chung:</strong> {{ session.teacher_comment|linebreaksbr }}</p>{% endif %}
+  {% if user.is_admin %}
+  {% url 'session_unlock' session.pk as unlock_url %}
+  <form {% form_attrs unlock_url "Mở khóa để giáo viên có thể nộp lại buổi học này?" %} style="margin-top:12px">{% csrf_token %}
+    <button type="submit" class="btn btn-sm">{% icon 'lock-open' %} Mở khóa (quản trị viên)</button>
+  </form>
+  {% endif %}
+{% else %}
+  <div class="panel"><p class="empty" style="margin:0">{{ block_reason }}</p></div>
+{% endif %}
+
+<div class="section-title"><h2>Thông tin lớp</h2></div>
+<div class="panel">
+  <dl class="details">
+    <dt>Lịch lớp</dt><dd>{{ c.schedule_display }}</dd>
+    <dt>Trạng thái lớp</dt><dd>{% if user.is_moderator %}{% include 'core/_status_switch.html' %}{% else %}<span class="badge status-{{ c.status }}">{{ c.get_status_display }}</span>{% endif %}</dd>
+    <dt>Học sinh ({{ c.students.count }}/10)</dt>
+    <dd><span class="chips">{% for s in c.students.all %}<a class="chip" href="{% url 'student_detail' s.pk %}">{{ s }}</a>{% empty %}—{% endfor %}</span></dd>
+    {% with materials=c.materials.all %}{% if materials %}
+    <dt>Tài liệu</dt>
+    <dd><span class="chips">{% for m in materials %}<a class="chip chip-class" href="{{ m.url }}" target="_blank" rel="noopener">{% icon 'external-link' %} {{ m.title }}</a>{% endfor %}</span></dd>
+    {% endif %}{% endwith %}
+    {% if c.note %}<dt>Ghi chú</dt><dd>{{ c.note|linebreaksbr }}</dd>{% endif %}
+  </dl>
+</div>
+
+{% if history is not None %}
+<details class="history">
+  <summary>{% icon 'history' %} Lịch sử thay đổi buổi học</summary>
+  {% include 'core/_history.html' %}
+</details>
+{% endif %}
+{% endblock %}

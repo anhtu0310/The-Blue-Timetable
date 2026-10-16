@@ -1,0 +1,17 @@
+{% extends base_template %}
+{% load ui %}
+{% block title %}{% if c %}Sửa lớp {{ c.code }}{% else %}Tạo lớp học{% endif %}{% endblock %}
+{% block content %}
+{% if c %}{% url 'class_edit' c.pk as base_url %}{% else %}{% url 'class_create' as base_url %}{% endif %}
+<div class="page-header">
+  <div>
+    {% if c and session_id %}{% url 'session_detail' session_id as back_url %}<a {% modal_link back_url %} class="breadcrumb">{% icon 'arrow-left' %} Quay lại buổi học</a>
+    {% elif c %}<a href="{% url 'class_detail' c.pk %}" class="breadcrumb">{% icon 'arrow-left' %} Lớp {{ c.code }}</a>
+    {% else %}<a href="{% url 'class_list' %}" class="breadcrumb">{% icon 'arrow-left' %} Lớp học</a>{% endif %}
+    <h1>{% if c %}Sửa lớp <span class="code">{{ c.code }}</span>{% else %}Tạo lớp học mới{% endif %}</h1>
+    <p class="subtitle">Mã lớp được tạo tự động: mã môn + khối + số thứ tự (VD: TO0601).</p>
+  </div>
+</div>
+{% if session_id %}{% with url=base_url|add:"?session="|add:session_id %}{% include 'core/_class_form_body.html' %}{% endwith %}
+{% else %}{% with url=base_url %}{% include 'core/_class_form_body.html' %}{% endwith %}{% endif %}
+{% endblock %}

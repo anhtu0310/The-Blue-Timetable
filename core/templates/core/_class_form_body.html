@@ -1,0 +1,54 @@
+{% load ui %}
+<form {% form_attrs url %} data-class-form {% if not request.htmx %}class="card"{% endif %}>{% csrf_token %}
+  <div {% if not request.htmx %}class="card-body"{% endif %}>
+  {% include 'core/_form_errors.html' %}
+  <div class="form-section">
+    <h3>Thông tin chung</h3>
+    <div class="form-grid-4">
+      {% include 'core/_field.html' with field=form.subject %}
+      {% include 'core/_field.html' with field=form.grade %}
+      {% include 'core/_field.html' with field=form.status %}
+      {% include 'core/_field.html' with field=form.room %}
+    </div>
+  </div>
+
+  <div class="form-section">
+    <h3>Lịch học</h3>
+    <div class="form-grid-3">
+      {% include 'core/_field.html' with field=form.frequency %}
+      {% include 'core/_field.html' with field=form.start_time %}
+      {% include 'core/_field.html' with field=form.end_time %}
+    </div>
+    <div data-freq="weekly biweekly">
+      {% include 'core/_field.html' with field=form.weekdays %}
+      <div class="form-grid">
+        {% include 'core/_field.html' with field=form.start_date %}
+        {% include 'core/_field.html' with field=form.end_date %}
+      </div>
+    </div>
+    <div data-freq="custom">
+      {% include 'core/_field.html' with field=form.custom_dates %}
+    </div>
+    {% if c %}<small class="muted">Khi đổi lịch, các buổi học sắp tới chưa nộp và chưa điều chỉnh riêng sẽ được cập nhật theo lịch mới. Buổi học đã qua được giữ nguyên.</small>{% endif %}
+  </div>
+
+  <div class="form-section">
+    <h3>Giáo viên &amp; học sinh</h3>
+    <p class="muted">Người có môn trùng với môn của lớp được gắn nhãn <span class="badge ev-done">Phù hợp</span> và đưa lên đầu danh sách.</p>
+    <div class="form-grid">
+      {% include 'core/_picker.html' with field=form.teachers max=0 %}
+      {% include 'core/_picker.html' with field=form.students max=10 %}
+    </div>
+  </div>
+
+  <div class="form-section">
+    {% include 'core/_field.html' with field=form.note %}
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">{% if c %}Lưu thay đổi{% else %}Tạo lớp{% endif %}</button>
+      {% if c and session_id %}{% url 'session_detail' session_id as back_url %}<a {% modal_link back_url %} class="btn">Hủy</a>
+      {% elif c %}<a href="{% url 'class_detail' c.pk %}" class="btn">Hủy</a>
+      {% else %}<a href="{% url 'class_list' %}" class="btn">Hủy</a>{% endif %}
+    </div>
+  </div>
+  </div>
+</form>

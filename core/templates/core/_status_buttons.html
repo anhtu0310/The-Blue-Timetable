@@ -1,0 +1,12 @@
+{% load ui %}
+<div class="segmented" role="group" aria-label="Trạng thái lớp">
+  <form {% form_attrs url "Tiếp tục lớp học? Các buổi học sắp tới sẽ được tạo lại theo lịch." %}>{% csrf_token %}
+    <button type="submit" name="status" value="ongoing" class="seg-ongoing{% if c.status == 'ongoing' %} is-active{% endif %}" {% if c.status == 'ongoing' %}disabled aria-pressed="true"{% endif %}>Đang diễn ra</button>
+  </form>
+  <form {% form_attrs url "Tạm dừng lớp học? Các buổi học sắp tới chưa nộp sẽ bị xóa khỏi lịch." %}>{% csrf_token %}
+    <button type="submit" name="status" value="paused" class="seg-paused{% if c.status == 'paused' %} is-active{% endif %}" {% if c.status == 'paused' %}disabled aria-pressed="true"{% endif %}>Tạm dừng</button>
+  </form>
+  <form {% form_attrs url "Kết thúc lớp học? Các buổi học sắp tới chưa nộp sẽ bị xóa khỏi lịch." %}>{% csrf_token %}
+    <button type="submit" name="status" value="ended" class="seg-ended{% if c.status == 'ended' %} is-active{% endif %}" {% if c.status == 'ended' %}disabled aria-pressed="true"{% endif %}>Đã kết thúc</button>
+  </form>
+</div>

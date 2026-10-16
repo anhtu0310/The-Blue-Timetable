@@ -1,0 +1,53 @@
+{% extends 'core/base.html' %}
+{% load ui %}
+{% block title %}{{ person }} – Blue Time Table{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    {% if user.is_moderator %}<a href="{% url 'teacher_list' %}" class="breadcrumb">{% icon 'arrow-left' %} Giáo viên</a>{% endif %}
+    <div class="person" style="gap:16px">
+      <span class="avatar avatar-lg">{{ person|initials }}</span>
+      <div>
+        <h1>{{ person }} <span class="chip role-{{ person.role }}">{{ person.get_role_display }}</span>{% if not person.is_active %} <span class="badge ev-cancelled">Đã khóa</span>{% endif %}</h1>
+        <p class="subtitle">{{ person.get_member_type_display }}{% if person.current_job %} · {{ person.current_job }}{% endif %}</p>
+      </div>
+    </div>
+  </div>
+  {% if user.is_admin %}
+  <div class="page-actions">
+    <a href="{% url 'teacher_edit' person.pk %}" class="btn btn-primary">{% icon 'pencil' %} Sửa hồ sơ</a>
+    <a href="{% url 'teacher_password' person.pk %}" class="btn">{% icon 'key-round' %} Đặt lại mật khẩu</a>
+    {% if person.pk != user.pk %}<a href="{% url 'teacher_delete' person.pk %}" class="btn">{% icon 'trash-2' %} Xóa</a>{% endif %}
+  </div>
+  {% endif %}
+</div>
+<div class="grid-2">
+  <section class="card">
+    <div class="card-header"><h2>Thông tin cá nhân</h2></div>
+    <div class="card-body" style="padding-top:4px;padding-bottom:4px">
+      <dl class="details">
+        <dt>Tên đăng nhập</dt><dd>@{{ person.username }}</dd>
+        <dt>Ngày sinh</dt><dd>{{ person.dob|date:"d/m/Y"|default:"—" }}</dd>
+        <dt>Số điện thoại</dt><dd>{{ person.phone|default:"—" }}</dd>
+        <dt>Công việc hiện tại</dt><dd>{{ person.current_job|default:"—" }}</dd>
+        <dt>Môn dạy</dt><dd><span class="chips">{% for s in person.subjects.all %}<span class="chip chip-tag">{{ s.name }}</span>{% empty %}—{% endfor %}</span></dd>
+        <dt>Lớp phụ trách</dt><dd>{% include 'core/_class_chips.html' %}</dd>
+      </dl>
+    </div>
+  </section>
+  <section class="card">
+    <div class="card-header"><h2>Buổi học sắp tới</h2></div>
+    <ul class="list">
+      {% for s in upcoming %}
+      <li>
+        <a class="list-link" href="{% url 'session_detail' s.pk %}" hx-get="{% url 'session_detail' s.pk %}" hx-target="#modal-body">
+          <span class="time-box"><strong>{{ s.date|date:"d/m" }}</strong><small>{{ s.start_time|time:"H:i" }}</small></span>
+          <span class="grow"><span class="cell-title"><span class="code">{{ s.study_class.code }}</span> · {{ s.study_class.subject }}</span>
+          <span class="cell-sub">{{ s.date|date:"l" }}{% if s.room %} · Phòng {{ s.room }}{% endif %}{% if s.substitute_teacher_id == person.pk %} · dạy thay{% endif %}</span></span>
+        </a>
+      </li>
+      {% empty %}<li class="empty-item">Không có buổi học sắp tới.</li>{% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends base_template %}
+{% load ui %}
+{% block title %}Lớp {{ c.code }} – Blue Time Table{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    {% if not request.htmx %}<a href="{% url 'class_list' %}" class="breadcrumb">{% icon 'arrow-left' %} Lớp học</a>{% endif %}
+    <h1><span class="code">{{ c.code }}</span> {{ c.subject }} {% if not user.is_moderator %}<span class="badge status-{{ c.status }}">{{ c.get_status_display }}</span>{% endif %}</h1>
+    <div class="meta">
+      <span>{% icon 'graduation-cap' %} Khối {{ c.grade }}</span>
+      <span>{% icon 'map-pin' %} {% if c.room %}Phòng {{ c.room }}{% else %}Chưa có phòng{% endif %}</span>
+      <span>{% icon 'clock' %} {{ c.schedule_display }}</span>
+    </div>
+  </div>
+  <div class="page-actions">
+    {% if user.is_moderator %}{% include 'core/_status_switch.html' %}
+    <a href="{% url 'class_edit' c.pk %}" class="btn btn-primary">{% icon 'pencil' %} Sửa lớp</a>{% endif %}
+    {% if user.is_admin %}<a href="{% url 'class_delete' c.pk %}" class="btn">{% icon 'trash-2' %} Xóa</a>{% endif %}
+  </div>
+</div>
+
+<div class="grid-2">
+  <section class="card">
+    <div class="card-header"><h2>{% icon 'users' %} Giáo viên &amp; học sinh</h2><span class="count">{{ c.students.count }}/10 học sinh</span></div>
+    <ul class="list">
+      {% for t in c.teachers.all %}
+      <li><span class="avatar">{{ t|initials }}</span>
+        <span class="grow">{% if user.is_moderator or t.pk == user.pk %}<a href="{% url 'teacher_detail' t.pk %}" class="cell-title">{{ t }}</a>{% else %}<span class="cell-title">{{ t }}</span>{% endif %}
+        <span class="cell-sub">{{ t.get_member_type_display }}{% if t.phone %} · {{ t.phone }}{% endif %}</span></span>
+        <span class="chip chip-tag">Giáo viên</span></li>
+      {% endfor %}
+      {% for s in c.students.all %}
+      <li><span class="avatar">{{ s|initials }}</span>
+        <span class="grow"><a href="{% url 'student_detail' s.pk %}" class="cell-title">{{ s }}</a>
+        <span class="cell-sub">{% if s.dob %}{{ s.dob|date:"d/m/Y" }}{% endif %}</span></span></li>
+      {% empty %}<li class="empty-item">Chưa có học sinh.</li>{% endfor %}
+    </ul>
+  </section>
+
+  <section class="card">
+    <div class="card-header"><h2>{% icon 'link' %} Tài liệu</h2></div>
+    <ul class="list">
+      {% for m in c.materials.all %}
+      <li>
+        <span class="grow"><a href="{{ m.url }}" target="_blank" rel="noopener" class="cell-title">{{ m.title }} {% icon 'external-link' %}</a>
+        <span class="cell-sub">{{ m.added_by|default:"" }} · {{ m.created_at|date:"d/m/Y" }}</span></span>
+        {% if user.is_moderator or m.added_by_id == user.pk %}
+        <form method="post" action="{% url 'material_delete' m.pk %}" class="inline-form" onsubmit="return confirm('Xóa tài liệu này?')">{% csrf_token %}
+          <button type="submit" class="btn btn-ghost btn-sm danger" aria-label="Xóa">{% icon 'trash-2' %}</button>
+        </form>
+        {% endif %}
+      </li>
+      {% empty %}<li class="empty-item">Chưa có tài liệu.</li>{% endfor %}
+    </ul>
+    {% if can_add_material %}
+    <div class="card-footer">
+      <form method="post" action="{% url 'material_add' c.pk %}" class="toolbar">{% csrf_token %}
+        <input type="text" name="title" placeholder="Tên tài liệu" required style="flex:1 1 140px">
+        <input type="url" name="url" placeholder="https://…" required style="flex:2 1 180px">
+        <button type="submit" class="btn">{% icon 'plus' %} Thêm</button>
+      </form>
+    </div>
+    {% endif %}
+    {% if c.note %}<div class="card-body" style="border-top:1px solid var(--border)"><h3 style="margin-bottom:6px">Ghi chú</h3>{{ c.note|linebreaksbr }}</div>{% endif %}
+  </section>
+</div>
+
+<section class="card">
+  <div class="card-header"><h2>{% icon 'calendar-days' %} Buổi học</h2><span class="count">{{ sessions|length }} buổi</span></div>
+  <div class="table-wrap table-scroll" data-scroll-today>
+    <table class="table">
+      <thead><tr><th>Ngày</th><th>Giờ</th><th>Phòng</th><th>Dạy thay</th><th>Trạng thái</th><th></th></tr></thead>
+      <tbody>
+        {% for s in sessions %}
+        <tr {% if s.date == today %}class="is-today"{% endif %} {% if s.pk == next_session_id %}data-anchor{% endif %}>
+          <td><span class="cell-title">{{ s.date|date:"d/m/Y" }}</span><span class="cell-sub">{{ s.date|date:"l" }}</span></td>
+          <td>{{ s.start_time|time:"H:i" }} – {{ s.end_time|time:"H:i" }}</td>
+          <td>{{ s.room|default:"—" }}</td>
+          <td>{{ s.substitute_teacher|default:"—" }}</td>
+          <td><span class="badge ev-{{ s.state }}">{{ s.state_label }}</span></td>
+          <td class="actions-cell"><a href="{% url 'session_detail' s.pk %}" hx-get="{% url 'session_detail' s.pk %}" hx-target="#modal-body" class="btn btn-sm">Mở</a></td>
+        </tr>
+        {% empty %}<tr><td colspan="6" class="empty">Chưa có buổi học.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+{% if history is not None %}
+<details class="history card">
+  <summary>{% icon 'history' %} Lịch sử thay đổi lớp học</summary>
+  {% include 'core/_history.html' %}
+</details>
+{% endif %}
+{% endblock %}

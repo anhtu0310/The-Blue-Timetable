@@ -1,0 +1,9 @@
+{% load ui %}
+<form method="get" class="toolbar" role="search">
+  <div class="search">{% icon 'search' %}<input type="search" name="q" value="{{ q }}" placeholder="Tên hoặc môn (VD: toan, anh…)"></div>
+  <select name="tag" onchange="this.form.submit()">
+    <option value="">Tất cả môn</option>
+    {% for s in subjects %}<option value="{{ s.pk }}" {% if tag == s.pk|stringformat:"s" %}selected{% endif %}>{{ s.name }}</option>{% endfor %}
+  </select>
+  {% if q or tag %}<a href="?" class="btn btn-ghost">Xóa bộ lọc</a>{% endif %}
+</form>

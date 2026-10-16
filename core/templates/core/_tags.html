@@ -1,0 +1,1 @@
+<span class="chips">{% for s in subjects %}<a class="chip chip-tag" href="?tag={{ s.pk }}">{{ s.name }}</a>{% empty %}<span class="muted">—</span>{% endfor %}</span>

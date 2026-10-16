@@ -1,0 +1,23 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# Free web service running the public demo. The free plan has no persistent disk, so the
+# SQLite database is recreated (and refilled with demo data) every time the service starts.
+services:
+  - type: web
+    name: blue-timetable
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    startCommand: >-
+      python manage.py migrate --noinput &&
+      python manage.py seed_demo --if-empty &&
+      gunicorn config.wsgi --workers 1 --threads 4 --bind 0.0.0.0:$PORT
+    healthCheckPath: /dang-nhap/
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: BTT_DEBUG
+        value: "0"
+      - key: BTT_DEMO
+        value: "1"
+      - key: BTT_SECRET_KEY
+        generateValue: true

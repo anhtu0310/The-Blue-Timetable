@@ -1,0 +1,15 @@
+<div class="field{% if field.errors %} has-error{% endif %}">
+  <div class="picker" data-picker{% if max %} data-max="{{ max }}"{% endif %}>
+    <div class="picker-head"><strong>{{ field.label }}</strong><span class="picker-count" data-picker-count></span></div>
+    <div class="picker-search"><input type="search" placeholder="Lọc theo tên hoặc môn…" data-picker-filter></div>
+    <div class="picker-list">
+      {% for cb in field %}{% with obj=cb.data.value.instance %}
+      <label class="pick" data-subjects=" {% for s in obj.subjects.all %}{{ s.pk }} {% endfor %}" data-text="{{ obj }} {% for s in obj.subjects.all %}{{ s.name }} {% endfor %}">
+        {{ cb.tag }} <span class="pick-name">{{ obj }}</span>
+        <span class="pick-tags">{% for s in obj.subjects.all %}<span class="chip">{{ s.name }}</span>{% endfor %}</span>
+      </label>
+      {% endwith %}{% empty %}<p class="muted" style="padding:8px">Chưa có dữ liệu.</p>{% endfor %}
+    </div>
+  </div>
+  {% for e in field.errors %}<small class="error">{{ e }}</small>{% endfor %}
+</div>

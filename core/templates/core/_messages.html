@@ -1,0 +1,3 @@
+{% load ui %}{% for m in messages %}
+<div class="alert alert-{{ m.tags }}" role="status">{% if m.tags == 'success' %}{% icon 'circle-check' %}{% else %}{% icon 'circle-alert' %}{% endif %}<span>{{ m }}</span></div>
+{% endfor %}
